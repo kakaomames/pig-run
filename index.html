@@ -149,11 +149,11 @@
         let score = 0;
         let isGameOver = false;
         let difficulty = 1;
-        
+
         let isJoystickActive = true;
-        const hash = window.location.hash.toLowerCase();
+        const hash = window.location.hash.toLowerCase().substring(1); // #を削除
         
-        const difficultyMatch = hash.match(/#h(\d+)/);
+        const difficultyMatch = hash.match(/^h(\d+)/);
         if (difficultyMatch) {
             const level = parseInt(difficultyMatch[1]);
             if (difficultyLevels[level]) {
@@ -161,13 +161,12 @@
             }
         }
         
-        if (hash.includes('#k') || hash.includes('#key')) {
+        if (hash.includes('k') || hash.includes('key')) {
             isJoystickActive = false;
-        } else if (hash.includes('#s') || hash.includes('#stick')) {
+        } else if (hash.includes('s') || hash.includes('stick')) {
             isJoystickActive = true;
         }
 
-        // JSONファイルの読み込み
         async function loadItemData() {
             try {
                 const response = await fetch('item.json');
@@ -231,7 +230,7 @@
                 playerSpeed += effect.speed;
                 setTimeout(() => {
                     playerSpeed = basePlayerSpeed;
-                }, 5000); // 5秒後に元の速度に戻る
+                }, effect.effectDuration);
             }
         }
 
@@ -242,7 +241,7 @@
                 if (pig.x < playerX) pig.x += pig.speed;
                 if (pig.x > playerX) pig.x -= pig.speed;
                 if (pig.y < playerY) pig.y += pig.speed;
-                if (pig.y > playerY) pig.y -= pig.y;
+                if (pig.y > playerY) pig.y -= pig.speed;
             });
             updatePosition();
             checkCollisions();
@@ -312,31 +311,14 @@
         }
         
         // ジョイスティック操作
+        let joystickVector = { x: 0, y: 0 };
         let isDragging = false;
-        let startX, startY;
-
-        const handleDrag = (e) => {
-            if (!isDragging || isGameOver) return;
-            const touchOrMouse = e.touches ? e.touches[0] : e;
-            const deltaX = touchOrMouse.clientX - startX;
-            const deltaY = touchOrMouse.clientY - startY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const maxDistance = joystickBase.clientWidth / 2 - joystickHandle.clientWidth / 2;
+        
+        const movePlayerWithJoystick = () => {
+            if (isGameOver || !isDragging) return;
             
-            let moveX, moveY;
-            if (distance > maxDistance) {
-                const angle = Math.atan2(deltaY, deltaX);
-                moveX = Math.cos(angle) * maxDistance;
-                moveY = Math.sin(angle) * maxDistance;
-            } else {
-                moveX = deltaX;
-                moveY = deltaY;
-            }
-
-            joystickHandle.style.transform = `translate(${moveX}px, ${moveY}px)`;
-            
-            playerX += (moveX / maxDistance) * playerSpeed;
-            playerY += (moveY / maxDistance) * playerSpeed;
+            playerX += joystickVector.x * playerSpeed;
+            playerY += joystickVector.y * playerSpeed;
 
             playerX = Math.max(0, Math.min(container.clientWidth - player.clientWidth, playerX));
             playerY = Math.max(0, Math.min(container.clientHeight - player.clientHeight, playerY));
@@ -344,30 +326,56 @@
             updatePosition();
         };
 
+        const handleDrag = (e) => {
+            const touchOrMouse = e.touches ? e.touches[0] : e;
+            const rect = joystickBase.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            let deltaX = touchOrMouse.clientX - centerX;
+            let deltaY = touchOrMouse.clientY - centerY;
+
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = rect.width / 2;
+            
+            if (distance > maxDistance) {
+                deltaX = (deltaX / distance) * maxDistance;
+                deltaY = (deltaY / distance) * maxDistance;
+            }
+
+            joystickHandle.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            
+            joystickVector.x = deltaX / maxDistance;
+            joystickVector.y = deltaY / maxDistance;
+        };
+
         const handleEnd = () => {
             isDragging = false;
             joystickHandle.style.transform = `translate(0px, 0px)`;
+            joystickVector.x = 0;
+            joystickVector.y = 0;
         };
 
         if (isJoystickActive) {
             joystickBase.addEventListener('mousedown', (e) => {
                 isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
+                handleDrag(e);
                 e.preventDefault();
             });
             document.addEventListener('mouseup', handleEnd);
-            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mousemove', (e) => {
+                if(isDragging) handleDrag(e);
+            });
 
             joystickBase.addEventListener('touchstart', (e) => {
-                e.preventDefault();
                 isDragging = true;
-                const touch = e.touches[0];
-                startX = touch.clientX;
-                startY = touch.clientY;
+                handleDrag(e);
+                e.preventDefault();
             });
             document.addEventListener('touchend', handleEnd);
-            document.addEventListener('touchmove', handleDrag);
+            document.addEventListener('touchmove', (e) => {
+                if(isDragging) handleDrag(e);
+            });
         }
 
         // ゲームのリセット
@@ -376,6 +384,7 @@
             score = 0;
             playerX = 50;
             playerY = 50;
+            playerSpeed = basePlayerSpeed;
             gameOverMessage.style.display = 'none';
             scoreText.textContent = `スコア: 0`;
             timerText.textContent = `タイム: 0`;
@@ -400,7 +409,11 @@
 
         restartButton.addEventListener('click', resetGame);
         
-        loadItemData().then(resetGame); // アイテムデータを読み込んでからゲーム開始
+        loadItemData().then(resetGame);
+        
+        if (isJoystickActive) {
+            setInterval(movePlayerWithJoystick, 1000/60); // フレームレートでプレイヤーを動かす
+        }
     </script>
 </body>
 </html>

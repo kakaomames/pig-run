@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>豚追いかけゲーム（統合版）</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            flex-direction: column;
+            font-family: sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            touch-action: none;
+        }
+        #game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            margin-bottom: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #aaddff;
+            border: 2px solid #333;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        .character {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+        }
+        #player {
+            background-color: #007bff;
+            border-radius: 5px;
+        }
+        .pig {
+            background-color: #ffb6c1;
+            border-radius: 50%;
+        }
+        #item {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: gold;
+            border-radius: 50%;
+            border: 2px solid orange;
+            box-shadow: 0 0 10px gold;
+        }
+        #joystick-base {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #joystick-handle {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+        }
+        #game-over-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: red;
+            font-size: 48px;
+            font-weight: bold;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #restart-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐷豚追いかけゲーム（統合版）</h1>
+    <p id="info-text"></p>
+    <div id="game-info">
+        <span id="score-text">スコア: 0</span>
+        <span id="timer-text">タイム: 0</span>
+    </div>
+    <div id="game-container">
+        <div id="player" class="character"></div>
+        <div id="item" class="character"></div>
+        <div id="joystick-base">
+            <div id="joystick-handle"></div>
+        </div>
+        <div id="game-over-message">
+            ゲームオーバー<br>
+            <span id="final-score"></span>
+            <button id="restart-button">もう一度</button>
+        </div>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const container = document.getElementById('game-container');
+        const joystickBase = document.getElementById('joystick-base');
+        const joystickHandle = document.getElementById('joystick-handle');
+        const infoText = document.getElementById('info-text');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const scoreText = document.getElementById('score-text');
+        const timerText = document.getElementById('timer-text');
+        const finalScoreText = document.getElementById('final-score');
+        const restartButton = document.getElementById('restart-button');
+        const item = document.getElementById('item');
+
+        const difficultyLevels = {
+            1: { pigSpeed: 2, numberOfPigs: 1 },
+            2: { pigSpeed: 3, numberOfPigs: 2 },
+            3: { pigSpeed: 4, numberOfPigs: 3 }
+        };
+        let itemData = {};
+
+        let pigs = [];
+        let playerX, playerY;
+        let playerSpeed = 3;
+        let basePlayerSpeed = 3;
+        let gameInterval, timerInterval;
+        let score = 0;
+        let isGameOver = false;
+        let difficulty = 1;
+        
+        let isJoystickActive = true;
+        const hash = window.location.hash.toLowerCase();
+        
+        const difficultyMatch = hash.match(/#h(\d+)/);
+        if (difficultyMatch) {
+            const level = parseInt(difficultyMatch[1]);
+            if (difficultyLevels[level]) {
+                difficulty = level;
+            }
+        }
+        
+        if (hash.includes('#k') || hash.includes('#key')) {
+            isJoystickActive = false;
+        } else if (hash.includes('#s') || hash.includes('#stick')) {
+            isJoystickActive = true;
+        }
+
+        // JSONファイルの読み込み
+        async function loadItemData() {
+            try {
+                const response = await fetch('item.json');
+                const data = await response.json();
+                itemData = data.items;
+            } catch (error) {
+                console.error('アイテムデータの読み込みに失敗しました:', error);
+            }
+        }
+
+        // --- UI表示の切り替え ---
+        if (isJoystickActive) {
+            joystickBase.style.display = 'flex';
+            infoText.textContent = '仮想スティックでプレイヤーを動かそう！';
+        } else {
+            joystickBase.style.display = 'none';
+            infoText.textContent = '矢印キーでプレイヤーを動かそう！';
+        }
+
+        // --- プレイヤーの移動制御 ---
+        function updatePosition() {
+            player.style.left = playerX + 'px';
+            player.style.top = playerY + 'px';
+            pigs.forEach(p => {
+                p.element.style.left = p.x + 'px';
+                p.element.style.top = p.y + 'px';
+            });
+        }
+
+        function createPigs() {
+            const numPigs = difficultyLevels[difficulty].numberOfPigs;
+            for (let i = 0; i < numPigs; i++) {
+                const pigElement = document.createElement('div');
+                pigElement.className = 'character pig';
+                container.appendChild(pigElement);
+                pigs.push({
+                    element: pigElement,
+                    x: Math.random() * (container.clientWidth - 30),
+                    y: Math.random() * (container.clientHeight - 30),
+                    speed: difficultyLevels[difficulty].pigSpeed
+                });
+            }
+        }
+
+        // アイテムの生成と配置
+        function spawnItem() {
+            const x = Math.random() * (container.clientWidth - item.clientWidth);
+            const y = Math.random() * (container.clientHeight - item.clientHeight);
+            item.style.left = x + 'px';
+            item.style.top = y + 'px';
+            item.style.display = 'block';
+        }
+
+        // アイテムの取得処理
+        function pickUpItem() {
+            const itemKeys = Object.keys(itemData);
+            const randomItemKey = itemKeys[Math.floor(Math.random() * itemKeys.length)];
+            const effect = itemData[randomItemKey];
+
+            if (effect.speed) {
+                playerSpeed += effect.speed;
+                setTimeout(() => {
+                    playerSpeed = basePlayerSpeed;
+                }, 5000); // 5秒後に元の速度に戻る
+            }
+        }
+
+        // 豚がプレイヤーを追いかけるロジック
+        function chasePigs() {
+            if (isGameOver) return;
+            pigs.forEach(pig => {
+                if (pig.x < playerX) pig.x += pig.speed;
+                if (pig.x > playerX) pig.x -= pig.speed;
+                if (pig.y < playerY) pig.y += pig.speed;
+                if (pig.y > playerY) pig.y -= pig.y;
+            });
+            updatePosition();
+            checkCollisions();
+        }
+
+        // 衝突判定
+        function checkCollisions() {
+            const collisionDistance = 30;
+
+            // 豚との衝突
+            pigs.forEach(pig => {
+                const distanceX = playerX - pig.x;
+                const distanceY = playerY - pig.y;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                if (distance < collisionDistance) {
+                    endGame();
+                }
+            });
+
+            // アイテムとの衝突
+            if (item.style.display !== 'none') {
+                const itemDistanceX = playerX - item.offsetLeft;
+                const itemDistanceY = playerY - item.offsetTop;
+                const itemDistance = Math.sqrt(itemDistanceX * itemDistanceX + itemDistanceY * itemDistanceY);
+                if (itemDistance < 20) {
+                    item.style.display = 'none';
+                    score += 10;
+                    scoreText.textContent = `スコア: ${score}`;
+                    pickUpItem();
+                    setTimeout(spawnItem, 5000); // 5秒後にアイテムを再生成
+                }
+            }
+        }
+
+        // ゲームオーバー処理
+        function endGame() {
+            isGameOver = true;
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            finalScoreText.textContent = `最終スコア: ${score}`;
+            gameOverMessage.style.display = 'block';
+            document.removeEventListener('keydown', handleKeyDown);
+        }
+
+        // キーボード操作
+        function handleKeyDown(e) {
+            if (isGameOver) return;
+            switch (e.key) {
+                case 'ArrowUp':
+                    playerY = Math.max(0, playerY - playerSpeed);
+                    break;
+                case 'ArrowDown':
+                    playerY = Math.min(container.clientHeight - player.clientHeight, playerY + playerSpeed);
+                    break;
+                case 'ArrowLeft':
+                    playerX = Math.max(0, playerX - playerSpeed);
+                    break;
+                case 'ArrowRight':
+                    playerX = Math.min(container.clientWidth - player.clientWidth, playerX + playerSpeed);
+                    break;
+            }
+            updatePosition();
+        }
+        
+        if (!isJoystickActive) {
+            document.addEventListener('keydown', handleKeyDown);
+        }
+        
+        // ジョイスティック操作
+        let isDragging = false;
+        let startX, startY;
+
+        const handleDrag = (e) => {
+            if (!isDragging || isGameOver) return;
+            const touchOrMouse = e.touches ? e.touches[0] : e;
+            const deltaX = touchOrMouse.clientX - startX;
+            const deltaY = touchOrMouse.clientY - startY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = joystickBase.clientWidth / 2 - joystickHandle.clientWidth / 2;
+            
+            let moveX, moveY;
+            if (distance > maxDistance) {
+                const angle = Math.atan2(deltaY, deltaX);
+                moveX = Math.cos(angle) * maxDistance;
+                moveY = Math.sin(angle) * maxDistance;
+            } else {
+                moveX = deltaX;
+                moveY = deltaY;
+            }
+
+            joystickHandle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            
+            playerX += (moveX / maxDistance) * playerSpeed;
+            playerY += (moveY / maxDistance) * playerSpeed;
+
+            playerX = Math.max(0, Math.min(container.clientWidth - player.clientWidth, playerX));
+            playerY = Math.max(0, Math.min(container.clientHeight - player.clientHeight, playerY));
+
+            updatePosition();
+        };
+
+        const handleEnd = () => {
+            isDragging = false;
+            joystickHandle.style.transform = `translate(0px, 0px)`;
+        };
+
+        if (isJoystickActive) {
+            joystickBase.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                e.preventDefault();
+            });
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('mousemove', handleDrag);
+
+            joystickBase.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+            });
+            document.addEventListener('touchend', handleEnd);
+            document.addEventListener('touchmove', handleDrag);
+        }
+
+        // ゲームのリセット
+        function resetGame() {
+            isGameOver = false;
+            score = 0;
+            playerX = 50;
+            playerY = 50;
+            gameOverMessage.style.display = 'none';
+            scoreText.textContent = `スコア: 0`;
+            timerText.textContent = `タイム: 0`;
+            pigs.forEach(p => p.element.remove());
+            pigs = [];
+
+            createPigs();
+            spawnItem();
+            
+            gameInterval = setInterval(chasePigs, 50);
+            timerInterval = setInterval(() => {
+                score++;
+                scoreText.textContent = `スコア: ${score}`;
+                timerText.textContent = `タイム: ${score}`;
+            }, 1000);
+
+            updatePosition();
+            if (!isJoystickActive) {
+                document.addEventListener('keydown', handleKeyDown);
+            }
+        }
+
+        restartButton.addEventListener('click', resetGame);
+        
+        loadItemData().then(resetGame); // アイテムデータを読み込んでからゲーム開始
+    </script>
+</body>
+</html>

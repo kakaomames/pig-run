@@ -1,0 +1,234 @@
+{
+"items": {
+"速度ブーストlv.1": {
+"speed": 1,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.1！5秒間だけ速くなるよ！"
+},
+"速度ブーストlv.2": {
+"speed": 2,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.2！5秒間だけ速くなるよ！"
+},
+"速度ブーストlv.3": {
+"speed": 3,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.3！5秒間だけ速くなるよ！"
+},
+"速度ブーストlv.4": {
+"speed": 4,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.4！5秒間だけ速くなるよ！"
+},
+"速度ブーストlv.5": {
+"speed": 5,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.5！5秒間だけ速くなるよ！"
+},
+"豚スローlv.1": {
+"pigSpeedFactor": 0.8,
+"effectDuration": 5000,
+"message": "豚が少し遅くなるよ！"
+},
+"豚スローlv.2": {
+"pigSpeedFactor": 0.6,
+"effectDuration": 5000,
+"message": "豚がかなり遅くなるよ！"
+},
+"豚スローlv.3": {
+"pigSpeedFactor": 0.4,
+"effectDuration": 5000,
+"message": "豚がすごく遅くなるよ！"
+},
+"透明化": {
+"invisible": true,
+"effectDuration": 5000,
+"message": "5秒間透明になって豚から見えなくなるよ！"
+},
+"バリア": {
+"shield": true,
+"effectDuration": 5000,
+"message": "5秒間バリアを張って、一度だけぶつかっても大丈夫！"
+},
+"逆転スイッチ": {
+"reverseControls": true,
+"effectDuration": 5000,
+"message": "5秒間操作が逆になるよ！気を付けて！"
+},
+"スコア倍率": {
+"scoreMultiplier": 2,
+"effectDuration": 10000,
+"message": "10秒間スコアが2倍になるよ！"
+},
+"ミニブタ召喚": {
+"miniPigs": 2,
+"message": "ミニブタが2匹現れた！"
+},
+"メガブタ召喚": {
+"megaPigs": 1,
+"message": "巨大な豚が1匹現れた！"
+},
+"速度低下": {
+"speed": -2,
+"effectDuration": 5000,
+"message": "速度が5秒間遅くなる！ピンチだ！"
+},
+"豚ダッシュ": {
+"pigSpeedFactor": 2,
+"effectDuration": 3000,
+"message": "豚が3秒間だけ速くなる！"
+},
+"ワープ": {
+"teleport": true,
+"message": "どこかにワープした！"
+},
+"お助け豚": {
+"helperPig": true,
+"effectDuration": 10000,
+"message": "10秒間、お助け豚が豚を追い払ってくれる！"
+},
+"アイテム出現": {
+"spawnItem": 2,
+"message": "アイテムが2個追加で出現！"
+},
+"ゲームスピードアップ": {
+"gameSpeedFactor": 1.2,
+"effectDuration": 10000,
+"message": "ゲーム全体の速度が10秒間アップ！"
+},
+"豚の全滅": {
+"removeAllPigs": true,
+"message": "全ての豚がいなくなった！"
+},
+"スコア減少": {
+"score": -50,
+"message": "スコアが50減った！"
+},
+"体力回復": {
+"health": 100,
+"message": "体力が全回復した！"
+},
+"豚の位置リセット": {
+"resetPigs": true,
+"message": "豚の位置がリセットされた！"
+},            "速度ブーストLv.6": {
+"speed": 6,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.6！5秒間だけ速くなるよ！"
+},            "速度ブーストLv.7": {
+"speed": 7,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.7！5秒間だけ速くなるよ！"
+},            "速度ブーストLv.8": {
+"speed": 8,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.8！5秒間だけ速くなるよ！"
+},            "速度ブーストLv.9": {
+"speed": 9,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.9！5秒間だけ速くなるよ！"
+},            "速度ブーストLv.10": {
+"speed": 10,
+"effectDuration": 5000,
+"message": "速度ブースト Lv.10！5秒間だけ速くなるよ！"
+},            "豚スローlv.4": {
+"pigSpeedFactor": 0.2,
+"effectDuration": 5000,
+"message": "豚がほとんど動かない！"
+},            "豚スローlv.5": {
+"pigSpeedFactor": 0.1,
+"effectDuration": 5000,
+"message": "豚が超スローになるよ！"
+},            "無敵": {
+"invincible": true,
+"effectDuration": 5000,
+"message": "5秒間無敵になった！"
+},            "豚の方向転換": {
+"reversePigDirection": true,
+"effectDuration": 5000,
+"message": "5秒間豚の動きが逆になる！"
+},            "ミニブタ大発生": {
+"miniPigs": 5,
+"message": "ミニブタが5匹現れた！"
+},            "メガブタ大発生": {
+"megaPigs": 3,
+"message": "巨大な豚が3匹現れた！"
+},            "速度超低下": {
+"speed": -5,
+"effectDuration": 5000,
+"message": "速度が5秒間激減！"
+},            "豚の瞬間移動": {
+"teleportPigs": true,
+"message": "豚が瞬間移動した！"
+},            "スコア倍増": {
+"scoreMultiplier": 5,
+"effectDuration": 10000,
+"message": "10秒間スコアが5倍になるよ！"
+},            "プレイヤーサイズ変更": {
+"playerSizeFactor": 0.5,
+"effectDuration": 5000,
+"message": "プレイヤーが小さくなった！"
+},            "豚サイズ変更": {
+"pigSizeFactor": 2,
+"effectDuration": 5000,
+"message": "豚が巨大になった！"
+},            "ランダムワープ": {
+"randomTeleport": true,
+"message": "ランダムな場所にワープした！"
+},            "全画面クリア": {
+"clearScreen": true,
+"message": "画面上の全てのキャラクターを消去！"
+},            "スコア増加": {
+"score": 100,
+"message": "スコアが100増えた！"
+},            "プレイヤーの分身": {
+"clones": 1,
+"effectDuration": 5000,
+"message": "プレイヤーの分身が生まれた！"
+},            "アイテム吸い寄せ": {
+"attractItems": true,
+"effectDuration": 5000,
+"message": "5秒間アイテムを引き寄せる！"
+},            "豚の混乱": {
+"confusePigs": true,
+"effectDuration": 5000,
+"message": "5秒間豚が混乱する！"
+},            "時間停止": {
+"timeStop": true,
+"effectDuration": 5000,
+"message": "5秒間時間が止まった！"
+},            "画面反転": {
+"invertScreen": true,
+"effectDuration": 5000,
+"message": "画面の色が反転した！"
+},            "重力変更": {
+"gravityChange": true,
+"effectDuration": 5000,
+"message": "重力が軽くなった！"
+},            "ブラックホール": {
+"blackHole": true,
+"effectDuration": 5000,
+"message": "ブラックホールが出現！"
+},            "ホワイトホール": {
+"whiteHole": true,
+"effectDuration": 5000,
+"message": "ホワイトホールが出現！"
+},            "タイムリバース": {
+"timeReverse": true,
+"effectDuration": 5000,
+"message": "時間が5秒巻き戻った！"
+},            "分身バリア": {
+"cloneShield": true,
+"effectDuration": 5000,
+"message": "分身がバリアになった！"
+},            "巨大化": {
+"sizeFactor": 2,
+"effectDuration": 5000,
+"message": "プレイヤーが巨大化！"
+},            "縮小化": {
+"sizeFactor": 0.5,
+"effectDuration": 5000,
+"message": "プレイヤーが縮小化！"
+}
+}
+}
